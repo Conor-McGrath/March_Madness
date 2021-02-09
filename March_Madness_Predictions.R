@@ -62,5 +62,10 @@ table <- html_nodes(website, xpath = "/html/body/div[1]/div/div/div[3]/div[1]")
 seeds <- html_table(xml_child(table[[1]]))
 
 
+## CBS Bracketology Scraping
 
+cbs_website <- read_html("https://www.cbssports.com/college-basketball/bracketology/")
 
+cbs_table <- html_nodes(cbs_website, xpath = '//*[@id="page-content"]/div/div/div[2]/div/div/div[1]/div/div/div[1]/div/div/div[1]/div/div[2]/section/div[1]/div/div[3]/table')
+
+bracketology <- html_table(xml_child(xml_child(xml_child((cbs_table[[1]], 1,))

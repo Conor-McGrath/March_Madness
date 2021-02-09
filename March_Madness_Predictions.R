@@ -4,7 +4,10 @@ library(data.table)
 library(tidyr)
 library(purrr)
 library(glue)
+library(rvest)
+library(httr)
 
+## NatStat Scraping
 
 ### Get Stats Glossary
 
@@ -48,3 +51,16 @@ listofdfs <- Filter(function(x) dim(x)[1] > 0, par)
 
 stats_comp <- listofdfs %>%
   reduce(left_join, by=c('Team_ID'='Team_ID',"Team"="Team", "Team_Abbrev" = "Team_Abbrev", "Season"="Season", "Sublevel"="Sublevel"))
+
+
+## Seed Win Probability Scraping
+
+website <- read_html("https://www.boydsbets.com/bracket-tips-by-seed/")
+
+table <- html_nodes(website, xpath = "/html/body/div[1]/div/div/div[3]/div[1]")
+
+seeds <- html_table(xml_child(table[[1]]))
+
+
+
+

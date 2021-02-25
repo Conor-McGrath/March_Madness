@@ -79,5 +79,3 @@ conditional_probs <- seeds %>%
   mutate(FinalFour = round(Title.Game/Final.4,3))%>%
   mutate(TitleGame = round(National.Champ..Win./Title.Game,3))%>%
   select(Seed,FirstRound, SecondRound, Sweet16, EliteEight, FinalFour, TitleGame)
-
-

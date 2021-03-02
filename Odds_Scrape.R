@@ -1,5 +1,7 @@
 library(dplyr)
 library(readxl)
+library(stringr)
+library(tidyr)
 
 # Cleaned data in excel
 # Load in the data
@@ -86,8 +88,77 @@ collegeBasketball$Spread <- ifelse(collegeBasketball$Open < collegeBasketball$Op
 collegeBasketball$Spread <- ifelse(collegeBasketball$Open > collegeBasketball$Open2, collegeBasketball$Spread, collegeBasketball$Spread*(-1))
 
 collegeBasketball <- collegeBasketball %>%
-  select(Date, Team, Team2, Spread, Season)
+  select(Date, Season, Team, Spread, Team2)
 
 collegeBasketball <- na.omit(collegeBasketball)
 
+collegeBasketball$Team <- gsub("(?<=[a-z])U", "", collegeBasketball$Team, perl = TRUE)
+collegeBasketball$Team2 <- gsub("(?<=[a-z])U", "", collegeBasketball$Team2, perl = TRUE)
+collegeBasketball$Team <- gsub("([[:lower:]])([[:upper:]])", "\\1 \\2", collegeBasketball$Team)
+collegeBasketball$Team2 <- gsub("([[:lower:]])([[:upper:]])", "\\1 \\2", collegeBasketball$Team2)
+
+collegeBasketball$Team <- tolower(collegeBasketball$Team)
+collegeBasketball$Team2 <- tolower(collegeBasketball$Team2)
+
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "tenn martin", "tenn-martin")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "tenn martin", "tenn-martin")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "fla atlantic", "florida atlantic")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "fla atlantic", "florida atlantic")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "ul monroe", "la-monroe")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "ul monroe", "la-monroe")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "no illinois", "northern illinois")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "no illinois", "northern illinois")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "northwestern st", "northwestern st.")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "northwestern st", "northwestern st.")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "e. washington", "eastern washington")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "e. washington", "eastern washington")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "st. josephs", "st. joseph's")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "st. josephs", "st. joseph's")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "william&mary", "st. joseph's")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "william&mary", "st. joseph's")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "coll charleston", "col charleston")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "coll charleston", "col charleston")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "cal santa barb", "california-santa barbara")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "cal santa barb", "california-santa barbara")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "arkansas lr", "arkansas-little rock")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "arkansas lr", "arkansas-little rock")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "wisc-green bay", "wi green bay")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "wisc-green bay", "wi green bay")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "fair dickinson", "fairleigh dickinson")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "fair dickinson", "fairleigh dickinson")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "tennessee chat", "tennessee-chattanooga")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "tennessee chat", "tennessee-chattanooga")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "cal irvine", "california-irvine")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "cal irvine", "california-irvine")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "central mich", "central mich.")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "central mich", "central mich.")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "miami ohio", "miami (oh)")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "miami ohio", "miami (oh)")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "wisc milwaukee", "wi milwaukee")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "wisc milwaukee", "wi milwaukee")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "so mississippi", "southern miss")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "so mississippi", "southern miss")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "miami florida", "miami (fl)")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "miami florida", "miami (fl)")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "ul lafayette", "la.-lafayette")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "ul lafayette", "la.-lafayette")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "illinois chicago", "illinois-chicago")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "illinois chicago", "illinois-chicago")
+collegeBasketball$Team <- str_replace(collegeBasketball$Team, "illinois chicago", "illinois-chicago")
+collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "illinois chicago", "illinois-chicago")
+
 write.csv(collegeBasketball, "data/SpreadDataset.csv", row.names = FALSE)
+
+MTeamSpellings <- read.csv("data/MTeamSpellings.csv")
+
+merged <- left_join(collegeBasketball, MTeamSpellings, by = c("Team" = "TeamNameSpelling"))
+final <- left_join(merged, MTeamSpellings, by = c("Team2" = "TeamNameSpelling"))
+
+final$TeamID <- final$TeamID.x
+final$Team2ID <- final$TeamID.y
+
+final <- final %>%
+  select("Date", "Season", "Team", "TeamID", "Spread", "Team2", "Team2ID")
+
+final <- final %>%
+  drop_na()

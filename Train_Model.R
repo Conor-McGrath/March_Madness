@@ -13,7 +13,7 @@ all_past_results <- read_csv("data/all_past_results.csv")
 model_rdy_results <- all_past_results %>%
   mutate(lower_team_wins = ifelse(lower_team_wins=="YES", 1, 0))%>%
   mutate(lower_team_court_adv = ifelse(lower_team_court_adv=="H", 2, ifelse(lower_team_court_adv=="A", 1, 0)))%>%
-  dplyr::select(Season, lower_team, higher_team, EM_diff, adj_off_diff, adj_def_diff, adj_tempo_diff, lower_team_court_adv, lower_team_wins)
+  dplyr::select(Season, lower_team, higher_team, EM_diff, adj_off_diff, adj_def_diff, adj_tempo_diff, lower_team_court_adv, Spread, lower_team_wins)
 
 ### Model
 
@@ -29,9 +29,9 @@ trainSet <- model_rdy_results[training_indices, ]
 testSet <- model_rdy_results[-training_indices, ]
 
 # Create training matrix
-dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:8]), label = trainSet$lower_team_wins)
+dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:9]), label = trainSet$lower_team_wins)
 # Create test matrix
-dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:8]), label = testSet$lower_team_wins)
+dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:9]), label = testSet$lower_team_wins)
 
 # Cross validation for best iteration
 
@@ -216,25 +216,11 @@ bst_final <- xgboost(data = dtrain, # Set training data
 )
 
 
-
-
-
-
-
-
-
-
-
-log_loss <- function(actual, predicted, eps=0.00001) {
-  predicted <- pmin(pmax(predicted, eps), 1-eps)
-  -1/length(actual)*(sum(actual*log(predicted)+(1-actual)*log(1-predicted)))
-}
-
-
-
 xgb_test_preds <- predict(bst_final, dtest, type = "prob")
-log_loss(testSet$lower_team_wins %>% as.numeric - 1, xgb_test_preds)
 
+imp_mat <- xgb.importance(model = bst_final)
+# Plot importance (top 10 variables)
+xgb.plot.importance(imp_mat, top_n = 10)
 
 saveRDS(bst_final, "data/bst_final.rds")
 

@@ -7,7 +7,9 @@ library('XML')
 library('RCurl')
 library('stringdist')
 library('stringi')
+library(xml2)
 library(httr)
+library(dplyr)
 rm(list=ls(all=TRUE))
 gc(reset=TRUE)
 set.seed(8865)
@@ -70,7 +72,7 @@ setnames(dat, c(
   "remove4"
 ))
 dat <- dat %>%
-  select(-remove1, -remove2, -remove3, -remove4)
+  dplyr::select(-remove1, -remove2, -remove3, -remove4)
 dat <- dat[!(is.na(AdjEM) | is.na(Rank) | is.na(schedule_AdjEM)),]
 for(var in names(dat)[6:ncol(dat)]){
   set(dat, j=var, value=as.numeric(dat[[var]]))

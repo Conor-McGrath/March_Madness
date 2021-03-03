@@ -2,6 +2,7 @@ library(dplyr)
 library(readxl)
 library(stringr)
 library(tidyr)
+library(lubridate)
 
 # Cleaned data in excel
 # Load in the data
@@ -162,3 +163,54 @@ final <- final %>%
 
 final <- final %>%
   drop_na()
+
+## Merge KenPom with Vegas Lines
+
+PastResults <- read.csv("data/all_past_results.csv")
+MSeasons <- read.csv("data/Kaggle/MSeasons.csv")
+
+PastResults2 <- PastResults %>%
+  filter(Season >= 2008)
+
+MSeasons2 <- MSeasons %>%
+  filter(Season >= 2008) %>%
+  select("Season", "DayZero")
+
+DayZeroMerge <- left_join(PastResults2, MSeasons2, by = "Season")
+DayZeroMerge$DayZero <- mdy(DayZeroMerge$DayZero)
+DayZeroMerge$Date <- DayZeroMerge$DayZero + DayZeroMerge$DayNum
+
+DayZeroMerge <- DayZeroMerge %>%
+  select(-DayNum, -DayZero)
+
+final$Day <- str_sub(final$Date, start = -2)
+final$Month <- str_sub(final$Date, end = -3)
+
+final$Month <- as.numeric(final$Month)
+final$Season <- as.numeric(final$Season)
+
+final$Year <- ifelse(final$Month > 9, final$Season - 1, final$Season)
+
+final <- final %>%
+  select(-Date)
+
+final$Date <- paste(final$Month, final$Day, final$Year, sep = "-")
+
+final <- final %>%
+  select(-Season, -Day, -Month)
+
+final$Date <- mdy(final$Date)
+
+final <- final %>%
+  select(-Year)
+
+final$higher_team <- ifelse(final$TeamID > final$Team2ID, final$TeamID, final$Team2ID)
+final$lower_team <- ifelse(final$TeamID < final$Team2ID, final$TeamID, final$Team2ID)
+
+all_past_results <- left_join(DayZeroMerge, final, by = c("Date", "higher_team", "lower_team"))
+
+all_past_results <- all_past_results %>%
+  mutate(Spread = ifelse(TeamID > Team2ID, -Spread, Spread))
+
+all_past_results <- all_past_results %>%
+  select(-Date, -TeamID, -Team2ID, -Team, -Team2)

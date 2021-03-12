@@ -48,7 +48,7 @@ test <- test %>%
 submission_format <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv")
 
 # Link the spreads for the tournament games to the submission format df that has all hypothetical matchups. There will be many NAs since there are no spreads available for games that were never played.
-test2 <- left_join(submission_format, test, by=c("ID"="id"))
+# test2 <- left_join(submission_format, test, by=c("ID"="id"))
 
 # Get Kaggle stats for all hypothetical matchups
 blank_stage_1_preds <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv") %>%
@@ -65,7 +65,7 @@ blank_stage_1_preds <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv") %>%
   dplyr::select(-contains(".x"), -contains(".y"))
 
 # Cbind the spreads to the df with all other predictor variables. Again, the spread column will have NAs for matchups that did not actually take place.
-blank_stage_1_preds$Spread <- test2$Spread
+# blank_stage_1_preds$Spread <- test2$Spread
 
 ########################################################
 # This is where we have a question about how to proceed. To fill in these missing NAs, our idea
@@ -90,5 +90,9 @@ preds_to_send <- blank_stage_1_preds %>%
   mutate(Pred = stage_1_preds)
 
 colnames(preds_to_send) <- c("ID", "Pred")
+
+preds_to_send <- preds_to_send %>%
+  mutate(Pred = if_else(Pred>1,1,Pred))%>%
+  mutate(Pred=if_else(Pred<0,0,Pred))
 
 write.csv(preds_to_send, "data/preds_to_send.csv", row.names = FALSE)

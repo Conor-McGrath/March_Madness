@@ -29,9 +29,9 @@ trainSet <- model_rdy_results[training_indices, ]
 testSet <- model_rdy_results[-training_indices, ]
 
 # Create training matrix
-dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:9]), label = trainSet$lower_team_wins)
+dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:8]), label = trainSet$lower_team_wins) # Taking out Spread from model just for now. If you want it back in do 1:9
 # Create test matrix
-dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:9]), label = testSet$lower_team_wins)
+dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:8]), label = testSet$lower_team_wins) # same as above
 
 # Cross validation for best iteration
 

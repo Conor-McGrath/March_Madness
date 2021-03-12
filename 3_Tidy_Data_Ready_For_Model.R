@@ -9,14 +9,13 @@ library(lubridate)
 kp_raw <- read_csv("data/PomeryRatings.csv")%>%
   dplyr::select(team_name = Team, TeamID, Season, EM = AdjEM, adj_off = AdjO, adj_def = AdjD, adj_tempo = AdjT)
 
-regsznresults <-read_csv("data/Kaggle/MRegularSeasonCompactResults.csv")
+# regsznresults <-read_csv("data/Kaggle/MRegularSeasonCompactResults.csv")
 tourneyresults <- read_csv("data/Kaggle/MNCAATourneyCompactResults.csv")%>%
-  filter(Season > 2014) # For Submission 1, want to test model on tourny probs from 2015-2019. Not necessary for Submission 2.
-sectourneyresults <- read_csv("data/Kaggle/MSecondaryTourneyCompactResults.csv")
+  filter(Season <= 2014) # For Submission 1, want to test model on tourny probs from 2015-2019. Not necessary for Submission 2.
+# sectourneyresults <- read_csv("data/Kaggle/MSecondaryTourneyCompactResults.csv")
 
-all_past_results <- bind_rows(regsznresults, tourneyresults, sectourneyresults
-)%>%
-  dplyr::select(-SecondaryTourney, -NumOT)%>%
+all_past_results <- tourneyresults %>% # bind_rows(regsznresults, tourneyresults, sectourneyresults)
+  dplyr::select(-NumOT)%>% #dplyr::select(-SecondaryTourney, -NumOT)
   mutate(lower_team = pmin(WTeamID, LTeamID), # lower refers to ID number
          higher_team = pmax(WTeamID, LTeamID),
          lower_team_wins = ifelse(lower_team == WTeamID, "YES", "NO")) %>% # the outcome we'll predict
@@ -103,4 +102,7 @@ all_past_results <- all_past_results %>%
 all_past_results <- all_past_results %>%
   dplyr::select(-TeamID, -Team2ID, -Team, -Team2)
 
+
+
 write.csv(all_past_results, "data/all_past_results.csv", row.names = FALSE)
+

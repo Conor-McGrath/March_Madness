@@ -24,10 +24,6 @@ ncaa_basketball_2020_21 <- read_excel("data/OddsLines/ncaa basketball 2020-21.xl
 
 # 2016 and 2020 showing error when using rbind Need to make Close column is character...
 
-str(finalData$Close...10)
-str(ncaa_basketball_2016_17$Close...10)
-str(ncaa_basketball_2019_20$Close...10)
-
 ncaa_basketball_2016_17$Close...10 <- as.character(ncaa_basketball_2016_17$Close...10)
 ncaa_basketball_2019_20$Close...10 <- as.character(ncaa_basketball_2019_20$Close...10)
 
@@ -149,3 +145,4 @@ collegeBasketball$Team <- str_replace(collegeBasketball$Team, "illinois chicago"
 collegeBasketball$Team2 <- str_replace(collegeBasketball$Team2, "illinois chicago", "illinois-chicago")
 
 write.csv(collegeBasketball, "data/SpreadDataset.csv", row.names = FALSE)
+

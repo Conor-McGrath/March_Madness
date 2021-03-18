@@ -1,18 +1,21 @@
-# Read in Spread info
-SpreadDataset <- read.csv("data/SpreadDataset.csv")
-
-# Get all past results
+library(readr)
+library(tidyverse)
+library(pacman)
+library(janitor)
+library(dplyr)
+library(lubridate)
 # Get Ken Pom Data from 2002 on joined with Kaggle results data for every game and tidy the data
 
 kp_raw <- read_csv("data/PomeryRatings.csv")%>%
   dplyr::select(team_name = Team, TeamID, Season, EM = AdjEM, adj_off = AdjO, adj_def = AdjD, adj_tempo = AdjT)
 
-regsznresults <-read_csv("data/Kaggle/MRegularSeasonCompactResults.csv")
-tourneyresults <- read_csv("data/Kaggle/MNCAATourneyCompactResults.csv") 
-sectourneyresults <- read_csv("data/Kaggle/MSecondaryTourneyCompactResults.csv")
+# regsznresults <-read_csv("data/Kaggle/MRegularSeasonCompactResults.csv")
+tourneyresults <- read_csv("data/Kaggle/MNCAATourneyCompactResults.csv")%>%
+  filter(Season >= 2008) # For Submission 1, want to test model on tourny probs from 2015-2019. Not necessary for Submission 2.
+# sectourneyresults <- read_csv("data/Kaggle/MSecondaryTourneyCompactResults.csv")
 
-all_past_results <- bind_rows(regsznresults, tourneyresults, sectourneyresults) %>% 
-  dplyr::select(-SecondaryTourney, -NumOT)%>% 
+all_past_results <- tourneyresults %>% # bind_rows(regsznresults, tourneyresults, sectourneyresults)
+  dplyr::select(-NumOT)%>% #dplyr::select(-SecondaryTourney, -NumOT)
   mutate(lower_team = pmin(WTeamID, LTeamID), # lower refers to ID number
          higher_team = pmax(WTeamID, LTeamID),
          lower_team_wins = ifelse(lower_team == WTeamID, "YES", "NO")) %>% # the outcome we'll predict
@@ -24,10 +27,12 @@ all_past_results <- bind_rows(regsznresults, tourneyresults, sectourneyresults) 
          adj_def_diff = adj_def.x - adj_def.y,
          adj_tempo_diff = adj_tempo.x - adj_tempo.y,
          lower_team_court_adv = as.factor(ifelse(lower_team == WTeamID,
-                                                 WLoc,
-                                                 recode(WLoc, "A" = "H", "H" = "A", "N" = "N"))),
+                                                   WLoc,
+                                                   recode(WLoc, "A" = "H", "H" = "A", "N" = "N"))),
          lower_team_wins = as.factor(lower_team_wins))%>%
   dplyr::select(-contains(".x"), -contains(".y"))
+
+
 
 collegeBasketball <- read.csv("data/SpreadDataset.csv")
 
@@ -94,10 +99,50 @@ all_past_results <- left_join(DayZeroMerge, final, by = c("Date", "higher_team",
 all_past_results <- all_past_results %>%
   mutate(Spread = ifelse(TeamID > Team2ID, -Spread, Spread))
 
-all_past_results <- all_past_results %>%
+all_past_tourney_results <- all_past_results %>%
   dplyr::select(-TeamID, -Team2ID, -Team, -Team2)
 
-all_past_results_with_spread <- all_past_results
+# Load in past tournament seeds and clean up dataset
 
-write.csv(all_past_results_with_spread, "data/all_past_results_with_spread.csv", row.names = FALSE)
+TourneySeeds <- read_csv("data/MNCAATourneySeeds.csv")
+
+TourneySeeds <- TourneySeeds %>%
+  filter(Season >= 2008)
+
+TourneySeeds$Seed <- gsub("[a-z]", "", TourneySeeds$Seed, perl = TRUE)
+TourneySeeds$Seed <- gsub("[A-Z]", "", TourneySeeds$Seed, perl = TRUE)
+
+TourneySeeds$Seed <- as.numeric(TourneySeeds$Seed)
+
+#TourneySeeds <- TourneySeeds %>%
+ # drop_na()
+
+TourneySeeds$Key <- paste0(TourneySeeds$Season, "-", TourneySeeds$TeamID)
+
+# Put seeds into all_past_tourney_results
+
+all_past_tourney_results$Key <- paste0(all_past_tourney_results$Season, "-", all_past_tourney_results$WTeamID)
+all_past_tourney_results$Key2 <- paste0(all_past_tourney_results$Season, "-", all_past_tourney_results$LTeamID)
+
+all_past_tourney_results2 <- left_join(all_past_tourney_results, TourneySeeds, by= "Key")
+
+all_past_tourney_results2 <- all_past_tourney_results2 %>%
+  dplyr::select(-Key, -Season.y, -TeamID) #%>%
+  #drop_na()
+
+all_past_tourney_results2 <- left_join(all_past_tourney_results2, TourneySeeds, by= c("Key2" = "Key"))
+
+all_past_tourney_results2$WSeed <- all_past_tourney_results2$Seed.x
+all_past_tourney_results2$LSeed <- all_past_tourney_results2$Seed.y
+
+all_past_tourney_results2 <- all_past_tourney_results2 %>%
+  dplyr::select(-Key2, -Season.x, -TeamID, -Seed.x, -Seed.y)
+
+all_past_tourney_results2 <- all_past_tourney_results2 %>%
+  dplyr::select(16,14,1,17,2,3,18,4:13,15)
+
+all_past_tourney_results2 <- all_past_tourney_results2 %>%
+  drop_na()
+
+write.csv(all_past_tourney_results2, "data/all_past_tourney_results.csv", row.names = FALSE)
 

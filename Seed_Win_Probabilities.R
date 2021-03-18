@@ -26,10 +26,11 @@ seeds <- seeds %>%
 seeds[,-1] <- seeds[,-1]/100
 
 conditional_probs <- seeds %>%
-  mutate(FirstRound = Second.Round)%>%
-  mutate(SecondRound = round(Sweet.16/Second.Round,3))%>%
-  mutate(Sweet16 = round(Elite.Eight/Sweet.16,3))%>%
-  mutate(EliteEight = round(Final.4/Elite.Eight,3))%>%
-  mutate(FinalFour = round(Title.Game/Final.4,3))%>%
-  mutate(TitleGame = round(National.Champ..Win./Title.Game,3))%>%
+  mutate(FirstRound = X2nd.Round)%>%
+  mutate(SecondRound = round(Sweet.16/X2nd.Round,3))%>%
+  mutate(Sweet16 = round(Elite.8/Sweet.16,3))%>%
+  mutate(EliteEight = round(Final.Four/Elite.8,3))%>%
+  mutate(FinalFour = round(Championship/Final.Four,3))%>%
+  mutate(TitleGame = round(Win.Championship/Championship,3))%>%
   select(Seed,FirstRound, SecondRound, Sweet16, EliteEight, FinalFour, TitleGame)
+

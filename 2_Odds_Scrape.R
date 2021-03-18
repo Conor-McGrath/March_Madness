@@ -6,6 +6,7 @@ library(lubridate)
 
 # Cleaned data in excel
 # Load in the data
+# website: https://www.sportsbookreviewsonline.com/scoresoddsarchives/ncaabasketball/ncaabasketballoddsarchives.htm
 
 ncaa_basketball_2007_08 <- read_excel("data/OddsLines/ncaa basketball 2007-08.xlsx")
 ncaa_basketball_2008_09 <- read_excel("data/OddsLines/ncaa basketball 2008-09.xlsx")
@@ -45,31 +46,31 @@ finalData$Team...4 <- gsub("\\.(?=[A-Za-z])", ". ", finalData$Team...4, perl = T
 finalData$Team...16 <- gsub("\\.(?=[A-Za-z])", ". ", finalData$Team...16, perl = TRUE)
 
 finalData <- finalData %>% 
-  rename(
+  dplyr::rename(
     Date = Date...1,
     Rot = Rot...2,
     VH = VH...3,
     Team = Team...4,
-    FirstHalf = '1st...5',
-    SecondHalf = '2nd...6',
+    FirstHalf = `1st...5`,
+    SecondHalf = `2nd...6`,
     Final = Final...7,
     Result = Result...8,
     Open = Open...9,
     Close = Close...10,
     Moneyline = ML...11,
-    '2H' = '2H...12',
+    '2H' = `2H...12`,
     Date2 = Date...13,
     Rot2 = Rot...14,
     VH2 = VH...15,
     Team2 = Team...16,
-    FirstHalf2 = '1st...17',
-    SecondHalf2 = '2nd...18',
+    FirstHalf2 = `1st...17`,
+    SecondHalf2 = `2nd...18`,
     Final2 = Final...19,
     Result2 = Result...20,
     Open2 = Open...21,
     Close2 = Close...22,
     Moneyline2 = ML...23,
-    '2H2' = '2H...24',
+    '2H2' = `2H...24`,
     Season = Season
   )
 

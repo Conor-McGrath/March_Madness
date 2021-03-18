@@ -6,7 +6,7 @@ library(randomForest)
 library(tidyverse)
 library(Matrix)
 
-all_past_results <- read_csv("data/all_past_results_with_spread.csv")
+all_past_results <- read_csv("data/all_past_tourney_results.csv")
 
 ### Convert to model ready matrix
 
@@ -28,16 +28,10 @@ training_indices <- sample(seq_len(nrow(model_rdy_results)),
 trainSet <- model_rdy_results[training_indices, ]
 testSet <- model_rdy_results[-training_indices, ]
 
-trainSet <- trainSet %>%
-  na.omit()
-
-testSet <- testSet%>%
-  na.omit()
-
 # Create training matrix
-dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:8]), label = trainSet$Spread) 
+dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:9]), label = trainSet$lower_team_wins) # Taking out Spread from model just for now. If you want it back in do 1:9
 # Create test matrix
-dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:8]), label = testSet$Spread)
+dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:9]), label = testSet$lower_team_wins) # same as above
 
 # Cross validation for best iteration
 
@@ -206,14 +200,14 @@ bst_final <- xgboost(data = dtrain, # Set training data
                      
                      
                      
-                     eta = 0.1, # Set learning rate
+                     eta = 0.01, # Set learning rate
                      max.depth =  7, # Set max depth
                      min_child_weight = 10, # Set minimum number of samples in node to split
                      gamma = 0, # Set minimum loss reduction for split
                      subsample =  0.9, # Set proportion of training data to use in tree
                      colsample_bytree = 0.9, # Set number of variables to use in each tree
                      
-                     nrounds = 35, # Set number of rounds
+                     nrounds = 120, # Set number of rounds
                      early_stopping_rounds = 20, # Set number of rounds to stop at if there is no improvement
                      
                      verbose = 1, # 1 - Prints out fit
@@ -222,12 +216,11 @@ bst_final <- xgboost(data = dtrain, # Set training data
 )
 
 
-xgb_test_preds <- predict(bst_final, dtest)
+xgb_test_preds <- predict(bst_final, dtest, type = "prob")
 
 imp_mat <- xgb.importance(model = bst_final)
 # Plot importance (top 10 variables)
 xgb.plot.importance(imp_mat, top_n = 10)
 
-bst_final_spreads <- bst_final
+saveRDS(bst_final, "data/bst_final.rds")
 
-saveRDS(bst_final, "data/bst_final_spreads.rds")

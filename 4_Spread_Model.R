@@ -6,7 +6,7 @@ library(randomForest)
 library(tidyverse)
 library(Matrix)
 
-all_past_results <- read_csv("data/all_past_results.csv")
+all_past_results <- read_csv("data/all_past_results_with_spread.csv")
 
 ### Convert to model ready matrix
 
@@ -28,10 +28,16 @@ training_indices <- sample(seq_len(nrow(model_rdy_results)),
 trainSet <- model_rdy_results[training_indices, ]
 testSet <- model_rdy_results[-training_indices, ]
 
+trainSet <- trainSet %>%
+  na.omit()
+
+testSet <- testSet%>%
+  na.omit()
+
 # Create training matrix
-dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:8]), label = trainSet$lower_team_wins) # Taking out Spread from model just for now. If you want it back in do 1:9
+dtrain <- xgb.DMatrix(data = as.matrix(trainSet[, 1:8]), label = trainSet$Spread) 
 # Create test matrix
-dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:8]), label = testSet$lower_team_wins) # same as above
+dtest <- xgb.DMatrix(data = as.matrix(testSet[, 1:8]), label = testSet$Spread)
 
 # Cross validation for best iteration
 
@@ -216,11 +222,13 @@ bst_final <- xgboost(data = dtrain, # Set training data
 )
 
 
-xgb_test_preds <- predict(bst_final, dtest, type = "prob")
+xgb_test_preds <- predict(bst_final, dtest)
 
 imp_mat <- xgb.importance(model = bst_final)
 # Plot importance (top 10 variables)
 xgb.plot.importance(imp_mat, top_n = 10)
 
-saveRDS(bst_final, "data/bst_final.rds")
+bst_final_spreads <- bst_final
+
+saveRDS(bst_final, "data/bst_final_spreads.rds")
 

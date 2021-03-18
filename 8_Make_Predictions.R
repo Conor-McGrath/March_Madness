@@ -42,16 +42,16 @@ test <- test %>%
 ## Select only the columns that are used in the model
 test <- test %>%
   dplyr::select(id, Season.x, lower_team, higher_team, EM_diff, adj_off_diff, adj_def_diff, adj_tempo_diff, lower_team_court_adv, Spread)%>%
-  rename("Season" = "Season.x")
+  dplyr::rename_("Season" = "Season.x")
 
 # Get the Sample Submission df
-submission_format <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv")
+submission_format <- read_csv("data/Kaggle/MSampleSubmissionStage2.csv")
 
 # Link the spreads for the tournament games to the submission format df that has all hypothetical matchups. There will be many NAs since there are no spreads available for games that were never played.
 # test2 <- left_join(submission_format, test, by=c("ID"="id"))
 
 # Get Kaggle stats for all hypothetical matchups
-blank_stage_1_preds <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv") %>%
+blank_stage_1_preds <- read_csv("data/Kaggle/MSampleSubmissionStage2.csv") %>%
   clean_names() %>%
   separate(id, into = c("Season", "lower_team", "higher_team"), sep = "_", remove = FALSE, convert = TRUE) %>%
   dplyr::select(-pred)%>%
@@ -75,17 +75,23 @@ blank_stage_1_preds <- read_csv("data/Kaggle/MSampleSubmissionStage1.csv") %>%
 
 # Create matrix and run through model to make predictions
 
-submission_matrix <- xgb.DMatrix(data = as.matrix(blank_stage_1_preds[, -1]))
+ind_vars2021 <- read.csv("data/ind_vars2021.csv")%>%
+  dplyr::select(-1)
+
+ind_vars2021 <- ind_vars2021 %>%
+  dplyr::select(-predicted_spreads)
+
+submission_matrix <- xgb.DMatrix(data = as.matrix(ind_vars2021[, -1]))
 
 bst_final <- read_rds("data/bst_final.rds")
 
 stage_1_preds <- predict(bst_final, submission_matrix, type = "prob")
 
 # Calculate log loss
-log_loss(testSet$lower_team_wins %>% as.numeric - 1, xgb_test_preds)
+# log_loss(testSet$lower_team_wins %>% as.numeric - 1, xgb_test_preds)
 
 # Get Predictions and format correctly for submission
-preds_to_send <- blank_stage_1_preds %>%
+preds_to_send <- ind_vars2021 %>%
   dplyr::select(id) %>%
   mutate(Pred = stage_1_preds)
 
